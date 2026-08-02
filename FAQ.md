@@ -73,6 +73,12 @@ Se apaga todo. `start-dev.bat` lanza el proxy `decap-server` con `start /b` (mis
 
 Porque se lo configuras tú: en **Settings → Pages → Custom domain** guardas el dominio, y el **DNS** del dominio apunta a GitHub Pages (un CNAME hacia `edgardo001.github.io`). GitHub verifica el registro y emite el certificado HTTPS. El dominio `edgardovasquez.cl` está configurado en el *user site* `edgardo001.github.io`, y de ahí sale la redirección `github.io` → `edgardovasquez.cl`.
 
+## ¿Por qué GitGuardian me alerta por `auth_endpoint` / `auth_token_endpoint`?
+
+Es un **falso positivo**. GitGuardian marca el UUID de DecapBridge (`b02f9cba-...`) como posible secreto, pero es solo el **identificador público** del sitio (como un `client_id` de OAuth), necesario y visible en el `config.yml`. `auth_endpoint` es la URL de login; `auth_token_endpoint` es la URL para canjear el código de OAuth (el nombre "token" no significa que haya un secreto guardado). El secreto real (GitHub token) vive solo en el servidor de DecapBridge.
+
+Para que GitGuardian deje de alertar: **descartar (dismiss)** los incidentes como falso positivo en el dashboard. Los `.jpg` y la clave `id-token` del workflow también son falsos positivos.
+
 ## ¿Cómo se autentica Decap CMS en producción?
 
 El proxy OAuth de Netlify que Decap usaba por defecto **ya no funciona** (devuelve "not found"). Se decidió usar **DecapBridge** (https://decapbridge.com): servicio de auth y gestión de usuarios para Decap CMS, sin dependencia de Netlify.

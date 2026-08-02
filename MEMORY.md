@@ -100,6 +100,11 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 4. Widget de Decap CMS actualizado a `decap-cms@^3.15.1` (soporta PKCE/SSO Google-Microsoft).
 5. **Pendiente del usuario**: crear sitio en DecapBridge (cuenta + GitHub token fine-grained + URL login + auth type) y compartir el `config.yml` generado para fusionarlo.
 
+### 2026-08-02 — Integración DecapBridge y alertas de GitGuardian
+
+1. Se fusionó el `config.yml` generado por DecapBridge (backend `git-gateway` + PKCE, `auth_endpoint`/`auth_token_endpoint` con UUID público del sitio, `gateway_url`, commit messages con autor, claims y `site_url`), conservando `local_backend`, `locale`, `media_folder` y la colección `blog`.
+2. GitGuardian alerta por el **UUID de DecapBridge** (`b02f9cba-...`) en `auth_endpoint`/`auth_token_endpoint` y por binarios `.jpg` y la clave `id-token` del workflow: **todos falsos positivos**. El UUID es un identificador público de OAuth (no un secreto); el GitHub token queda solo en el servidor de DecapBridge.
+
 ## Convenciones
 
 - Textos de UI en **español**.
