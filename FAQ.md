@@ -75,7 +75,7 @@ Porque se lo configuras tú: en **Settings → Pages → Custom domain** guardas
 
 ## ¿Por qué el login de Decap CMS me redirige a Netlify?
 
-Es el **comportamiento por defecto**: el backend `github` de Decap CMS usa el proxy OAuth de Netlify (`api.netlify.com`) para autenticarte con tu cuenta de GitHub. No significa que el sitio esté en Netlify; es solo el proveedor de login. Te logueas ahí con tu GitHub, autorizas, y el CMS puede hacer commits al repo. (Alternativa más avanzada: crear tu propia GitHub OAuth App y un servidor OAuth propio para no depender de Netlify.)
+Es el **comportamiento por defecto**: el backend `github` de Decap CMS usa el proxy OAuth de Netlify (`api.netlify.com`) para autenticarte con tu cuenta de GitHub. No significa que el sitio esté en Netlify; es solo el proveedor de login. Te logueas ahí con tu GitHub, autorizas, y el CMS puede hacer commits al repo. **No necesitas una cuenta de Netlify** — solo autorizas con tu GitHub. (Alternativa más avanzada: crear tu propia GitHub OAuth App y un servidor OAuth propio para no depender de Netlify.)
 
 ## ¿En qué URL vive el sitio?
 
