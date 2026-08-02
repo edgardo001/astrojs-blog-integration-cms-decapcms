@@ -6,6 +6,8 @@ const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 
+const base = import.meta.env.BASE_URL;
+
 const formatDate = (date: Date) =>
   new Intl.DateTimeFormat("es", { dateStyle: "long" }).format(date);
 ---
@@ -21,12 +23,15 @@ const formatDate = (date: Date) =>
           {
             posts.map((post) => (
               <article class="post-card">
-                <a href={`/blog/${post.id}`} class="post-card__link">
+                <a
+                  href={`${base}blog/${post.id}/`}
+                  class="post-card__link"
+                >
                   {
                     post.data.image && (
                       <img
                         class="post-card__img"
-                        src={post.data.image}
+                        src={`${base}${post.data.image.replace(/^\//, "")}`}
                         alt={post.data.title}
                         loading="lazy"
                       />
