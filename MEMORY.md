@@ -94,9 +94,11 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 
 ### 2026-08-02 — Login de Decap CMS y repo real
 
-1. El login de Decap redirige a `api.netlify.com` — **comportamiento por defecto** del backend `github` (proxy OAuth de Netlify). El usuario confirmó usarlo tal cual (sin OAuth App propia).
-2. Se corrigió `backend.repo` en `public/admin/config.yml` (era placeholder `TU_USUARIO/TU_REPO`) → `edgardo001/astrojs-blog-integration-cms-decapcms`.
-3. El sitio quedó funcionando en `https://astrojs-blog-integration-cms-decapcms.edgardovasquez.cl/` (200 en `/` y `/blog/`).
+1. El login de Decap redirigía a `api.netlify.com` y daba **"not found"**: el proxy OAuth por defecto de Netlify está **descontinuado**.
+2. Decisión: usar **DecapBridge** (https://decapbridge.com) para la autenticación en producción (sin Netlify, sin servidores propios).
+3. Se corrigió `backend.repo` en `public/admin/config.yml` → `edgardo001/astrojs-blog-integration-cms-decapcms`.
+4. Widget de Decap CMS actualizado a `decap-cms@^3.15.1` (soporta PKCE/SSO Google-Microsoft).
+5. **Pendiente del usuario**: crear sitio en DecapBridge (cuenta + GitHub token fine-grained + URL login + auth type) y compartir el `config.yml` generado para fusionarlo.
 
 ## Convenciones
 

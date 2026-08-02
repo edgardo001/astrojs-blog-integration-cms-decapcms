@@ -73,9 +73,17 @@ Se apaga todo. `start-dev.bat` lanza el proxy `decap-server` con `start /b` (mis
 
 Porque se lo configuras tú: en **Settings → Pages → Custom domain** guardas el dominio, y el **DNS** del dominio apunta a GitHub Pages (un CNAME hacia `edgardo001.github.io`). GitHub verifica el registro y emite el certificado HTTPS. El dominio `edgardovasquez.cl` está configurado en el *user site* `edgardo001.github.io`, y de ahí sale la redirección `github.io` → `edgardovasquez.cl`.
 
-## ¿Por qué el login de Decap CMS me redirige a Netlify?
+## ¿Cómo se autentica Decap CMS en producción?
 
-Es el **comportamiento por defecto**: el backend `github` de Decap CMS usa el proxy OAuth de Netlify (`api.netlify.com`) para autenticarte con tu cuenta de GitHub. No significa que el sitio esté en Netlify; es solo el proveedor de login. Te logueas ahí con tu GitHub, autorizas, y el CMS puede hacer commits al repo. **No necesitas una cuenta de Netlify** — solo autorizas con tu GitHub. (Alternativa más avanzada: crear tu propia GitHub OAuth App y un servidor OAuth propio para no depender de Netlify.)
+El proxy OAuth de Netlify que Decap usaba por defecto **ya no funciona** (devuelve "not found"). Se decidió usar **DecapBridge** (https://decapbridge.com): servicio de auth y gestión de usuarios para Decap CMS, sin dependencia de Netlify.
+
+Setup (una sola vez):
+1. Crear cuenta en https://decapbridge.com/auth/signup.
+2. En el dashboard, "Add site": Git provider GitHub, repo `edgardo001/astrojs-blog-integration-cms-decapcms`, un **GitHub token** (fine-grained con permiso read/write a *Contents*; ver https://github.com/settings/tokens), la URL de login `https://astrojs-blog-integration-cms-decapcms.edgardovasquez.cl/admin/index.html` y el Auth type (Classic o PKCE para Google/Microsoft).
+3. Copiar el `config.yml` generado y fusionarlo con el de `public/admin/config.yml` (conservando la colección `blog`).
+4. Invitar colaboradores por email desde el dashboard.
+
+El widget de Decap CMS está en `decap-cms@^3.15.1` (soporta PKCE/SSO). No se necesita cuenta de Netlify.
 
 ## ¿En qué URL vive el sitio?
 
