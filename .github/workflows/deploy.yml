@@ -1,0 +1,62 @@
+# Construye el sitio Astro y lo publica en GitHub Pages.
+# Se ejecuta automáticamente en cada push a `main`, incluidos los commits
+# que hace Decap CMS al crear/editar posts (por eso los posts aparecen solos).
+
+name: Deploy to GitHub Pages
+
+# Cuándo se dispara el workflow.
+on:
+  push:
+    branches: [main]          # cada commit/push a main
+  workflow_dispatch:          # permite lanzarlo a mano desde la pestaña Actions
+
+# Permisos mínimos necesarios para publicar en GitHub Pages.
+permissions:
+  contents: read              # solo leer el código
+  pages: write                # poder escribir en la Pages
+  id-token: write             # autenticación OIDC para el deploy
+
+# Evita que dos despliegues se pisen entre sí.
+concurrency:
+  group: pages                # un solo deploy de Pages a la vez
+  cancel-in-progress: false   # el que corre en curso no se cancela
+
+jobs:
+  # Job 1: compilar el sitio y subirlo como artefacto.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4   # clona el repositorio
+
+      - name: Setup Node
+        uses: actions/setup-node@v4 # instala Node.js y usa la caché de npm
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci                  # instala dependencias exactas del lockfile
+
+      - name: Build
+        run: npm run build           # genera el sitio estático en dist/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5  # configura el entorno de Pages
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3  # sube dist/ como artefacto
+        with:
+          path: ./dist
+
+  # Job 2: publicar el artefacto en GitHub Pages.
+  deploy:
+    environment:
+      name: github-pages          # entorno de despliegue de Pages
+      url: ${{ steps.deployment.outputs.page_url }}  # URL final del sitio
+    runs-on: ubuntu-latest
+    needs: build                  # espera a que el build termine
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4   # publica el artefacto del job build
