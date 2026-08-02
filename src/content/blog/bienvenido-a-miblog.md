@@ -3,7 +3,7 @@ title: "Bienvenido a MiBlog"
 description: "El primer post del blog, creado con Astro y administrado con Decap CMS."
 pubDate: 2026-08-01
 author: "Edgardo"
-image: "/uploads/bienvenido-a-miblog.svg"
+image: "/uploads/bienvenido-a-miblog.jpg"
 tags: ["astro", "decap-cms", "bienvenida"]
 ---
 
@@ -16,6 +16,8 @@ contenido se administra con **Decap CMS**.
 
 Puedes entrar a `/admin/` y crear contenido desde la interfaz, o escribir un
 archivo Markdown directamente en `src/content/blog/`.
+
+![Escritura de contenido desde el editor](/uploads/bienvenido-a-miblog-2.jpg)
 
 ## Frontmatter
 
@@ -32,3 +34,5 @@ tags: ["etiqueta"]
 ```
 
 ¡Gracias por leer!
+
+![Despedida](/uploads/bienvenido-a-miblog-3.jpg)
