@@ -74,6 +74,12 @@ Dos opciones:
 
 > Al compilar, Astro lee los `.md` ya presentes en `src/content/blog/` (loader `glob()`). El CMS es quien los escribe ahí haciendo commits al repo; no consulta al CMS en build.
 
+## SEO y sindicación
+
+- **Open Graph / Twitter Cards**: `og:*` y `twitter:*` en `src/layouts/Layout.astro` (imagen absoluta desde el frontmatter `image`).
+- **Sitemap**: generado con `@astrojs/sitemap` en cada build (`/sitemap-index.xml`), excluye `/admin/`.
+- **RSS**: feed del blog en `/rss.xml` (`src/pages/rss.xml.ts`) con `@astrojs/rss`.
+
 ## Despliegue en GitHub Pages
 
 1. Repo **público** y en Settings → Pages seleccionar **GitHub Actions** como source.

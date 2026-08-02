@@ -105,6 +105,13 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 2. GitGuardian alerta por el **UUID de DecapBridge**, binarios `.jpg` y `id-token`: **todos falsos positivos**.
 3. Se documentó en FAQ la resolución del login y los falsos positivos.
 
+### 2026-08-02 — Sitemap, RSS y licencia
+
+1. Se agregó **sitemap** (`@astrojs/sitemap`) en `astro.config.mjs` (excluye `/admin/`).
+2. Se agregó **RSS** del blog en `/rss.xml` (`src/pages/rss.xml.ts` con `@astrojs/rss`), enlazado en el `<head>` del Layout.
+3. Se creó el archivo **LICENSE** (MIT, © 2026 Edgardo Vasquez).
+4. Se documentó en README (sección "SEO y sindicación").
+
 ## Convenciones
 
 - Textos de UI en **español**.
