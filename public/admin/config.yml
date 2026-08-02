@@ -1,0 +1,26 @@
+backend:
+  name: github
+  repo: TU_USUARIO/TU_REPO
+  branch: main
+
+local_backend: true
+
+locale: "es"
+
+media_folder: "public/uploads"
+public_folder: "/uploads"
+
+collections:
+  - name: "blog"
+    label: "Blog"
+    folder: "src/content/blog"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Título", name: "title", widget: "string" }
+      - { label: "Descripción", name: "description", widget: "text", required: false }
+      - { label: "Fecha", name: "pubDate", widget: "datetime", format: "YYYY-MM-DD" }
+      - { label: "Autor", name: "author", widget: "string", required: false }
+      - { label: "Imagen", name: "image", widget: "image", required: false }
+      - { label: "Etiquetas", name: "tags", widget: "list", required: false }
+      - { label: "Contenido", name: "body", widget: "markdown" }
