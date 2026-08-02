@@ -77,6 +77,11 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 3. Se documentó en README y FAQ: cómo llegan los posts al build (commits del CMS), cierre de `start-dev.bat`, y pasos de despliegue (repo público, source "GitHub Actions", workflow).
 4. FAQ.md quedó con todas las preguntas registradas del usuario.
 
+### 2026-08-02 — SEO social y posts con imágenes reales
+
+1. Los posts de muestra pasaron a usar **fotos reales** (3 por post: portada + medio + final) en `public/uploads/` (media folder del CMS).
+2. Se agregaron **Open Graph** (`og:*`) y **Twitter Cards** (`twitter:*`) en `src/layouts/Layout.astro`, con `og:image` en URL absoluta desde `Astro.site` + `image` del frontmatter, `og:type=article` en posts, canonical y favicon.
+
 ## Convenciones
 
 - Textos de UI en **español**.
