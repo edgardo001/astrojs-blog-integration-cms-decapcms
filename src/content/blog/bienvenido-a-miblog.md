@@ -1,5 +1,5 @@
 ---
-title: Bienvenido a MiBlog
+title: Bienvenido a MiBlog 12345
 description: El primer post del blog, creado con Astro y administrado con Decap CMS.
 pubDate: 2026-08-01
 author: Edgardo
