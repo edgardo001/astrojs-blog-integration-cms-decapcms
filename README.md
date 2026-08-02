@@ -57,11 +57,11 @@ npm run check
 
 ## Configurar Decap CMS
 
-Decap CMS **no usa usuario/contraseña propios**: autentica contra GitHub (OAuth) o funciona sin credenciales en local.
+Decap CMS **no usa usuario/contraseña propios**: en producción autentica vía **DecapBridge** y en local funciona sin credenciales.
 
 1. **Local (sin credenciales)**: el proyecto usa `local_backend: true`. Ejecuta `start-dev.bat` (o en terminales separadas: `npx decap-server` + `npm run dev`). Luego abre `http://localhost:4321/admin/`. Los cambios se escriben directo en el repo local.
 
-2. **Producción (GitHub Pages)**: el backend es `github` (OAuth). Configura `backend.repo` en `public/admin/config.yml` con tu `usuario/repo`. Los editores se loguean con su cuenta de GitHub (requiere push access al repo). El OAuth por defecto lo facilita Netlify; también se puede usar un [OAuth client propio](https://decapcms.org/docs/external-oauth-clients/).
+2. **Producción (GitHub Pages)**: el backend es `git-gateway` con **DecapBridge** (auth PKCE). El login lo gestiona DecapBridge (contraseña, Google o Microsoft) para los colaboradores invitados; los commits se firman con el nombre del autor. Ver el setup en el `FAQ.md`.
 
 > No hace falta apagar `local_backend` al desplegar: si el proxy no está corriendo, el CMS usa automáticamente el backend remoto definido en `config.yml`.
 

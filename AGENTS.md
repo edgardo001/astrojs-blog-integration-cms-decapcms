@@ -39,8 +39,8 @@ npm run lint      # Lint (si existe)
 
 ## Notas Decap CMS
 
-- El backend apunta a GitHub; ajustar `backend.repo` en `public/admin/config.yml` con `usuario/repo`.
-- En local, abrir `/admin/` con el servidor de desarrollo. Para producción en GitHub Pages, revisar el método de auth (git-gateway requiere Netlify o un proxy).
+- El backend apunta a **DecapBridge** (git-gateway + PKCE); el `repo` en `public/admin/config.yml` es `edgardo001/astrojs-blog-integration-cms-decapcms`.
+- En local, abrir `/admin/` con el servidor de desarrollo (usa `local_backend` + `decap-server`, sin login). En producción, el login lo maneja DecapBridge (contraseña, Google o Microsoft).
 - Las entradas del CMS se guardan como Markdown en `src/content/blog/`, compatibles con Content Collections de Astro.
 
 ## Verificación
