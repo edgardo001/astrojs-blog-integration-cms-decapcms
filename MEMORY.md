@@ -34,7 +34,8 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 - [x] Workflow `.github/workflows/deploy.yml` para GitHub Pages (rebuild automático con cada push a `main`)
 - [x] `site` configurado en `astro.config.mjs` → subdominio `astrojs-blog-integration-cms-decapcms.edgardovasquez.cl`
 - [x] Custom domain + `build_type: workflow` configurados en GitHub (vía API)
-- [ ] **Usuario**: registrar CNAME en Cloudflare (`astrojs-blog-integration-cms-decapcms` → `edgardo001.github.io`, DNS-only)
+- [ ] **Usuario**: registrar CNAME en Cloudflare (`astrojs-blog-integration-cms-decapcms` → `edgardo001.github.io`, DNS-only) — **en proceso: el sitio ya responde en el subdominio**
+- [x] `backend.repo` en `config.yml` = `edgardo001/astrojs-blog-integration-cms-decapcms`
 - [ ] Repo debe ser **público** para GitHub Pages gratuito (requisito confirmado)
 - [ ] Configurar `backend.repo` en `config.yml` con el repo real (usuario/repo)
 - [ ] Desplegar en GitHub Pages (repo `edgardo001.github.io`) — **decidido: GitHub Pages, no Netlify**
@@ -90,6 +91,12 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 3. Se eliminó el plugin rehype de prefijo de imágenes y `@astrojs/markdown-remark` (innecesarios con raíz).
 4. En GitHub (API): custom domain del project site = subdominio + `build_type: workflow`.
 5. **Pendiente del usuario**: registrar CNAME en Cloudflare (`astrojs-blog-integration-cms-decapcms` → `edgardo001.github.io`, DNS-only) para que GitHub verifique el dominio y habilite HTTPS.
+
+### 2026-08-02 — Login de Decap CMS y repo real
+
+1. El login de Decap redirige a `api.netlify.com` — **comportamiento por defecto** del backend `github` (proxy OAuth de Netlify). El usuario confirmó usarlo tal cual (sin OAuth App propia).
+2. Se corrigió `backend.repo` en `public/admin/config.yml` (era placeholder `TU_USUARIO/TU_REPO`) → `edgardo001/astrojs-blog-integration-cms-decapcms`.
+3. El sitio quedó funcionando en `https://astrojs-blog-integration-cms-decapcms.edgardovasquez.cl/` (200 en `/` y `/blog/`).
 
 ## Convenciones
 

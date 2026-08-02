@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: TU_USUARIO/TU_REPO
+  repo: edgardo001/astrojs-blog-integration-cms-decapcms
   branch: main
 
 local_backend: true

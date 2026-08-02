@@ -73,6 +73,10 @@ Se apaga todo. `start-dev.bat` lanza el proxy `decap-server` con `start /b` (mis
 
 Porque se lo configuras tú: en **Settings → Pages → Custom domain** guardas el dominio, y el **DNS** del dominio apunta a GitHub Pages (un CNAME hacia `edgardo001.github.io`). GitHub verifica el registro y emite el certificado HTTPS. El dominio `edgardovasquez.cl` está configurado en el *user site* `edgardo001.github.io`, y de ahí sale la redirección `github.io` → `edgardovasquez.cl`.
 
+## ¿Por qué el login de Decap CMS me redirige a Netlify?
+
+Es el **comportamiento por defecto**: el backend `github` de Decap CMS usa el proxy OAuth de Netlify (`api.netlify.com`) para autenticarte con tu cuenta de GitHub. No significa que el sitio esté en Netlify; es solo el proveedor de login. Te logueas ahí con tu GitHub, autorizas, y el CMS puede hacer commits al repo. (Alternativa más avanzada: crear tu propia GitHub OAuth App y un servidor OAuth propio para no depender de Netlify.)
+
 ## ¿En qué URL vive el sitio?
 
 En el subdominio **`https://astrojs-blog-integration-cms-decapcms.edgardovasquez.cl`** (raíz, sin subcarpeta). El DNS está en Cloudflare:
