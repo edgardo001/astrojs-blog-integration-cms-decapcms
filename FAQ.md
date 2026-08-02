@@ -68,3 +68,14 @@ Se apaga todo. `start-dev.bat` lanza el proxy `decap-server` con `start /b` (mis
 2. En Settings → Pages, elige "GitHub Actions" como source.
 3. El workflow `.github/workflows/deploy.yml` construye y publica el sitio en cada push a `main` (incluidos los commits del CMS).
 4. El `site` configurado en `astro.config.mjs` debe apuntar a la URL real (ej. `https://edgardo001.github.io`).
+
+## ¿Cómo sabe GitHub cuál es mi dominio?
+
+Porque se lo configuras tú: en **Settings → Pages → Custom domain** guardas el dominio, y el **DNS** del dominio apunta a GitHub Pages (un CNAME hacia `edgardo001.github.io`). GitHub verifica el registro y emite el certificado HTTPS. El dominio `edgardovasquez.cl` está configurado en el *user site* `edgardo001.github.io`, y de ahí sale la redirección `github.io` → `edgardovasquez.cl`.
+
+## ¿En qué URL vive el sitio?
+
+En el subdominio **`https://astrojs-blog-integration-cms-decapcms.edgardovasquez.cl`** (raíz, sin subcarpeta). El DNS está en Cloudflare:
+
+- Registro **CNAME**: nombre `astrojs-blog-integration-cms-decapcms` → destino `edgardo001.github.io`, con proxy **DNS-only** (nube gris).
+- Una vez el DNS resuelva, GitHub verifica el dominio y habilita HTTPS automáticamente.

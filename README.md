@@ -77,9 +77,16 @@ Dos opciones:
 ## Despliegue en GitHub Pages
 
 1. Repo **público** y en Settings → Pages seleccionar **GitHub Actions** como source.
-2. Verificar que `site` en `astro.config.mjs` apunte a la URL real (ej. `https://edgardo001.github.io`).
+2. `site` en `astro.config.mjs` apunta a **`https://astrojs-blog-integration-cms-decapcms.edgardovasquez.cl`** (subdominio personalizado).
 3. Configurar `backend.repo` en `public/admin/config.yml` con `usuario/repo`.
 4. El workflow `.github/workflows/deploy.yml` construye y publica el sitio en cada push a `main`, **incluidos los commits del CMS**, así los posts nuevos aparecen solos.
+
+### Dominio personalizado
+
+- El sitio vive en `https://astrojs-blog-integration-cms-decapcms.edgardovasquez.cl`, servido en la **raíz** del subdominio.
+- El DNS está en **Cloudflare**: agregar un registro **CNAME** `astrojs-blog-integration-cms-decapcms` → `edgardo001.github.io` (proxy DNS-only).
+- El dominio personalizado del project site se configura en el repo (Settings → Pages → Custom domain); GitHub lo verifica y emite el HTTPS automáticamente.
+- El dominio `edgardovasquez.cl` pertenece al *user site* `edgardo001.github.io`; de ahí salen las redirecciones `github.io` → `edgardovasquez.cl`.
 
 ```mermaid
 flowchart LR

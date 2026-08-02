@@ -32,10 +32,11 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 - [x] Integrar Decap CMS (`/admin` + `config.yml` + `local_backend`)
 - [x] Proxy local `decap-server` instalado como devDependency
 - [x] Workflow `.github/workflows/deploy.yml` para GitHub Pages (rebuild automático con cada push a `main`)
-- [x] `site` configurado en `astro.config.mjs`
+- [x] `site` configurado en `astro.config.mjs` → subdominio `astrojs-blog-integration-cms-decapcms.edgardovasquez.cl`
+- [x] Custom domain + `build_type: workflow` configurados en GitHub (vía API)
+- [ ] **Usuario**: registrar CNAME en Cloudflare (`astrojs-blog-integration-cms-decapcms` → `edgardo001.github.io`, DNS-only)
 - [ ] Repo debe ser **público** para GitHub Pages gratuito (requisito confirmado)
 - [ ] Configurar `backend.repo` en `config.yml` con el repo real (usuario/repo)
-- [ ] Settings → Pages: elegir "GitHub Actions" como source
 - [ ] Desplegar en GitHub Pages (repo `edgardo001.github.io`) — **decidido: GitHub Pages, no Netlify**
 
 ## Bitácora (historial cronológico)
@@ -81,6 +82,14 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 
 1. Los posts de muestra pasaron a usar **fotos reales** (3 por post: portada + medio + final) en `public/uploads/` (media folder del CMS).
 2. Se agregaron **Open Graph** (`og:*`) y **Twitter Cards** (`twitter:*`) en `src/layouts/Layout.astro`, con `og:image` en URL absoluta desde `Astro.site` + `image` del frontmatter, `og:type=article` en posts, canonical y favicon.
+
+### 2026-08-02 — Subdominio personalizado + Cloudflare
+
+1. El sitio se sirve en **`https://astrojs-blog-integration-cms-decapcms.edgardovasquez.cl`** (raíz del subdominio).
+2. `astro.config.mjs`: `site` apunta al subdominio; sin `base` (raíz). Rutas internas usan `import.meta.env.BASE_URL`.
+3. Se eliminó el plugin rehype de prefijo de imágenes y `@astrojs/markdown-remark` (innecesarios con raíz).
+4. En GitHub (API): custom domain del project site = subdominio + `build_type: workflow`.
+5. **Pendiente del usuario**: registrar CNAME en Cloudflare (`astrojs-blog-integration-cms-decapcms` → `edgardo001.github.io`, DNS-only) para que GitHub verifique el dominio y habilite HTTPS.
 
 ## Convenciones
 
