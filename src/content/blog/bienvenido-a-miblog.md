@@ -1,13 +1,15 @@
 ---
-title: "Bienvenido a MiBlog"
-description: "El primer post del blog, creado con Astro y administrado con Decap CMS."
+title: Bienvenido a MiBlog
+description: El primer post del blog, creado con Astro y administrado con Decap CMS.
 pubDate: 2026-08-01
-author: "Edgardo"
-image: "/uploads/bienvenido-a-miblog.jpg"
-tags: ["astro", "decap-cms", "bienvenida"]
+author: Edgardo
+image: /uploads/bienvenido-a-miblog.jpg
+tags:
+  - astro
+  - decap-cms
+  - bienvenida
 ---
-
-# Bienvenido a MiBlog
+# Bienvenido a MiBlog 1234
 
 Este es el primer post del blog. El sitio está construido con **Astro** y el
 contenido se administra con **Decap CMS**.
