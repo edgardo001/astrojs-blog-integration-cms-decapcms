@@ -116,18 +116,19 @@ En local, el proxy `decap-server` escribe el `.md` directo en el disco y el dev 
 
 `start-dev.bat` valida el puerto **antes** de iniciar nada:
 
-- Si 8081 está ocupado por **otro** proceso → muestra el proceso/PID que lo usa, avisa que `/admin/` pediría login y **aborta sin iniciar Astro** (exit code 1).
-- Si 8081 está ocupado por un `decap-server` **huérfano** de una sesión anterior (quedó al cerrar la ventana) → lo mata y **lo reinicia solo**.
+- Si 8081 está ocupado → muestra el proceso/PID que lo usa, avisa que `/admin/` pediría login y **aborta sin iniciar Astro** (exit code 1). **No mata nada automáticamente.**
 - Si 8081 está libre → arranca `decap-server`, espera (con reintentos, hasta 10 s) a que escuche y recién entonces ejecuta `npm run dev`. Al salir detiene el proxy.
+
+Para ver quién ocupa el puerto y liberarlo, ejecuta **`kill-dev.bat`**: lista el/los proceso(s) con su línea de comandos y pregunta antes de matar (responde `S` para terminar, `N` para no tocar nada). Acepta otro puerto como argumento: `kill-dev.bat 8082`.
 
 Opciones si no quieres liberar el puerto:
 
 1. **Solo ver el sitio** (sin CMS): ejecuta `npm run dev` manualmente.
-2. **Usar el CMS local**: detén el proceso que ocupa 8081 o configura `decap-server` en otro puerto (`PORT=8082 npx decap-server`) y apunta `local_backend.url` en `config.yml` a ese puerto.
+2. **Usar el CMS local**: detén el proceso que ocupa 8081 (con `kill-dev.bat`) o configura `decap-server` en otro puerto (`PORT=8082 npx decap-server`) y apunta `local_backend.url` en `config.yml` a ese puerto.
 
 ## ¿Qué pasa si cierro la ventana de `start-dev.bat`?
 
-El dev server de Astro se detiene con la ventana, pero el proxy `decap-server` puede **quedar huérfano** en 8081 (a veces no muere con la consola). No es un problema: la próxima vez que ejecutes `start-dev.bat` lo detecta, lo mata y arranca uno nuevo automáticamente. Si quieres liberar 8081 a mano:
+El dev server de Astro se detiene con la ventana, pero el proxy `decap-server` puede **quedar huérfano** en 8081 (a veces no muere con la consola). No es un problema: ejecuta **`kill-dev.bat`** para ver qué quedó y liberar el puerto antes de volver a iniciar. También puedes liberarlo a mano:
 
 ```powershell
 Get-NetTCPConnection -LocalPort 8081 -State Listen

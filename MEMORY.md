@@ -27,7 +27,7 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 - Las imágenes del CMS se guardan en `public/uploads/` (`media_folder: public/uploads`, `public_folder: /uploads`).
 - Frontmatter mínimo por post: `title`, `description`, `pubDate`, `author`, `image`, `tags` (validado en `src/content.config.ts`).
 - Navbar sticky responsivo (mobile-first) con menú hamburguesa mediante script vanilla.
-- `start-dev.bat` es la **única fuente de inicio en desarrollo**: lanza el proxy `decap-server` con `start /b` (misma consola) y luego `npm run dev`. Al cerrar la ventana o con Ctrl+C puede quedar un `decap-server` **huérfano** en 8081; el siguiente `start-dev.bat` lo **detecta y lo reinicia solo** (no hay que matarlo a mano).
+- `start-dev.bat` es la **única fuente de inicio en desarrollo**: lanza el proxy `decap-server` con `start /b` (misma consola) y luego `npm run dev`. Al cerrar la ventana o con Ctrl+C puede quedar un `decap-server` **huérfano** en 8081. **`kill-dev.bat`** muestra el/los proceso(s) que ocupan un puerto (por defecto 8081) con su línea de comandos y pregunta antes de matarlos (control manual).
 - `site` en `astro.config.mjs` = subdominio; **sin `base`** (se sirve en la raíz del custom domain). Las rutas internas usan `import.meta.env.BASE_URL` (funciona con o sin base).
 
 ## Estado actual
@@ -54,7 +54,7 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 - **Astro 7**: Content Collections se definen en `src/content.config.ts` (no `src/content/config.ts`) con `defineCollection` + loader `glob()` (`astro/loaders`) y `z` (`astro/zod`). El procesador Markdown por defecto es **Sätteri** (ya no trae `unified`; para `rehypePlugins` haría falta `@astrojs/markdown-remark` — se probó y se quitó, no hizo falta con raíz).
 - **GitHub Pages + dominios**: el custom domain vive en los Settings del repo/user site, no necesariamente en un archivo `CNAME`. `github.io` redirige al custom domain. Un *project site* con custom domain propio se sirve en la **raíz** del dominio (por eso `site` = subdominio y sin `base`). Desde Actions se usa `build_type: workflow` (el build legacy falla con Astro: ruido normal).
 - **Decap CMS**: el proxy OAuth de Netlify por defecto está **descontinuado** (login "not found"); se usa **DecapBridge** (PKCE). `local_backend: true` + `decap-server` = CMS local sin login; en producción cae solo al backend remoto. GitGuardian marca el UUID de DecapBridge como falso positivo.
-- **Herramientas**: `start-dev.bat` usa `start /b` (misma consola). **Valida el puerto 8081 antes de arrancar**: si está ocupado, reporta el proceso/PID y aborta sin iniciar Astro (así `/admin/` no queda en modo login de GitHub por un proxy muerto). Si el que lo ocupa es un `decap-server` huérfano de una sesión anterior, lo **mata y lo reinicia solo**. El proxy en background escribe su log en `%TEMP%\decap-server.log` y se espera con reintentos (hasta 10 s) a que escuche; al salir de `npm run dev` lo detiene. El workflow reconstruye con cada push a `main` (incluidos commits del CMS).
+- **Herramientas**: `start-dev.bat` usa `start /b` (misma consola). **Valida el puerto 8081 antes de arrancar**: si está ocupado, reporta el proceso/PID y aborta sin iniciar Astro (así `/admin/` no queda en modo login de GitHub por un proxy muerto); **no mata nada automáticamente** — si quieres liberarlo, ejecuta **`kill-dev.bat`** (muestra el/los proceso(s) del puerto con su línea de comandos y pregunta antes de matar; acepta puerto como argumento). El proxy en background escribe su log en `%TEMP%\decap-server-<aleatorio>.log` (nombre único por ejecución para que un log viejo bloqueado no rompa el arranque) y se espera con reintentos (hasta 10 s) a que escuche; al salir de `npm run dev` detiene el proxy. El workflow reconstruye con cada push a `main` (incluidos commits del CMS).
 - El detalle de cada punto está en **FAQ.md** (preguntas/respuestas) y en la bitácora de este archivo.
 
 ## Bitácora (historial cronológico)
@@ -155,6 +155,14 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
    - Al terminar `npm run dev` se detiene el proxy en 8081 (limpieza).
 3. Verificado: (a) 8081 ocupado por otro proceso → error + exit 1; (b) huérfano `decap-server` en 8081 → se mata, se reinicia y queda 8081 libre al salir; (c) puerto libre → happy path con limpieza final (8081 libre tras salir).
 4. Detalle de entorno: `start /b` + stdin redirigido a `<nul` rompe npx (`Input redirection is not supported`) solo en consolas no interactivas; en consola real funciona.
+
+### 2026-08-03 — kill-dev.bat y control manual del puerto 8081
+
+1. **Problema**: la auto-detección de huérfanos de `start-dev.bat` seguía fallando: un `cmd.exe` viejo (de una versión anterior del bat, `/K npx decap-server`) quedó vivo sin escuchar en 8081 pero **sosteniendo abierto el archivo de log** `%TEMP%\decap-server.log`. El redirect `> "%LOG%"` fallaba ("El proceso no tiene acceso al archivo..."), el post-check mostraba un log viejo y todo el arranque se rompía sin que se detectara nada por puerto.
+2. **Decisión**: control **manual** en lugar de magia automática. Se eliminó de `start-dev.bat` la matanza automática de `decap-server` huérfanos.
+3. **`kill-dev.bat`** (nuevo): lista los proceso(s) que escuchan en un puerto (por defecto `8081`, acepta puerto como argumento `kill-dev.bat 8082`), muestra para cada uno `tasklist` + línea de comandos (`Get-CimInstance`), y pregunta `S/N` antes de matar (`taskkill /F`). Si el puerto está libre, avisa y no hace nada.
+4. **`start-dev.bat`**: si 8081 está ocupado → muestra el proceso/PID, sugiere ejecutar `kill-dev.bat`, aborta con exit 1. El log del proxy ahora es `%TEMP%\decap-server-<aleatorio>.log` (**nombre único por ejecución**) para que un log viejo bloqueado por un proceso fantasma jamás rompa el redirect. Se mantienen los reintentos (hasta 10 s) y la limpieza al salir de `npm run dev`.
+5. Verificado: `kill-dev.bat` con puerto ocupado → muestra proceso+comando; respuesta `N` no mata; respuesta `S` mata y libera. `start-dev.bat`: puerto ocupado → error + sugerencia de `kill-dev.bat` (exit 1); puerto libre → happy path con limpieza final (8081 libre al salir, exit 0). El puerto bloqueado era un leftover de pruebas (`cmd.exe 28436`), no del código del usuario.
 
 ## Convenciones
 

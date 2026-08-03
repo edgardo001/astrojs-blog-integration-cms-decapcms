@@ -90,7 +90,7 @@ npm install
 start-dev.bat
 ```
 
-> `start-dev.bat` valida primero que el **puerto 8081** (proxy de Decap CMS) esté libre. Si está ocupado por otro proceso, lo reporta con el proceso/PID que lo usa y **aborta sin iniciar Astro** (para no levantar un `/admin/` que pediría login de GitHub). Si lo ocupa un `decap-server` huérfano de una sesión anterior, lo reinicia solo. Si solo quieres el sitio sin el CMS, usa `npm run dev` manualmente.
+> `start-dev.bat` valida primero que el **puerto 8081** (proxy de Decap CMS) esté libre. Si está ocupado, lo reporta con el proceso/PID que lo usa y **aborta sin iniciar Astro** (para no levantar un `/admin/` que pediría login de GitHub). Para liberarlo, ejecuta **`kill-dev.bat`** (muestra quién ocupa el puerto y pregunta antes de matar; `kill-dev.bat 8082` para otro puerto). Si solo quieres el sitio sin el CMS, usa `npm run dev` manualmente.
 
 # Alternativa: servidor de desarrollo solo
 npm run dev
