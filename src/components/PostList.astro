@@ -1,0 +1,153 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getCollection } from "astro:content";
+import type { BlogCollectionName } from "../content.config";
+
+interface Props {
+  collection: BlogCollectionName;
+  basePath: string;
+  title: string;
+  description: string;
+}
+
+const { collection, basePath, title, description } = Astro.props;
+
+const posts = (await getCollection(collection)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+const base = import.meta.env.BASE_URL;
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat("es", { dateStyle: "long" }).format(date);
+---
+
+<Layout title={title} description={description}>
+  <section class="blog container">
+    <h1>{title}</h1>
+    <p class="blog__intro">{description}</p>
+
+    {
+      posts.length > 0 ? (
+        <div class="blog__grid">
+          {
+            posts.map((post) => (
+              <article class="post-card">
+                <a
+                  href={`${base}${basePath}${post.id}/`}
+                  class="post-card__link"
+                >
+                  {
+                    post.data.image && (
+                      <img
+                        class="post-card__img"
+                        src={`${base}${post.data.image.replace(/^\//, "")}`}
+                        alt={post.data.title}
+                        loading="lazy"
+                      />
+                    )
+                  }
+                  <h2>{post.data.title}</h2>
+                </a>
+                <p class="post-card__meta">
+                  {formatDate(post.data.pubDate)}
+                  {post.data.author ? ` · ${post.data.author}` : ""}
+                </p>
+                {
+                  post.data.description && (
+                    <p class="post-card__desc">{post.data.description}</p>
+                  )
+                }
+              </article>
+            ))
+          }
+        </div>
+      ) : (
+        <p>No hay publicaciones todavía.</p>
+      )
+    }
+  </section>
+</Layout>
+
+<style>
+  .blog {
+    padding-block: 3.5rem;
+  }
+
+  .blog h1 {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+  }
+
+  .blog__intro {
+    color: var(--color-text-muted);
+  }
+
+  .blog__grid {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+
+  .post-card {
+    padding: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-bg-soft);
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .post-card:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  .post-card h2 {
+    font-size: 1.35rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .post-card a {
+    color: var(--color-text);
+  }
+
+  .post-card a:hover {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .post-card__img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: calc(var(--radius) - 0.25rem);
+    margin-bottom: 1rem;
+  }
+
+  .post-card__link:hover h2 {
+    color: var(--color-accent);
+  }
+
+  .post-card__meta {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .post-card__desc {
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  @media (min-width: 48rem) {
+    .blog__grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .blog__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

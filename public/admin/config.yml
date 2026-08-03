@@ -38,7 +38,7 @@ collections:
     folder: "src/content/blog"
     create: true
     slug: "{{slug}}"
-    fields:
+    fields: &campos_blog
       - { label: "Título", name: "title", widget: "string" }
       - { label: "Descripción", name: "description", widget: "text", required: false }
       - { label: "Fecha", name: "pubDate", widget: "datetime", format: "YYYY-MM-DD" }
@@ -46,3 +46,27 @@ collections:
       - { label: "Imagen", name: "image", widget: "image", required: false }
       - { label: "Etiquetas", name: "tags", widget: "list", required: false }
       - { label: "Contenido", name: "body", widget: "markdown" }
+  - name: "blog_rrhh"
+    label: "Blog RRHH"
+    folder: "src/content/blog_rrhh"
+    create: true
+    slug: "{{slug}}"
+    fields: *campos_blog
+  - name: "blog_interno"
+    label: "Blog Interno"
+    folder: "src/content/blog_interno"
+    create: true
+    slug: "{{slug}}"
+    fields: *campos_blog
+  - name: "blog_externo"
+    label: "Blog Externo"
+    folder: "src/content/blog_externo"
+    create: true
+    slug: "{{slug}}"
+    fields: *campos_blog
+  - name: "blog_comunicados"
+    label: "Blog Comunicados"
+    folder: "src/content/blog_comunicados"
+    create: true
+    slug: "{{slug}}"
+    fields: *campos_blog
