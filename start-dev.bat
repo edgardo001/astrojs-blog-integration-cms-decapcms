@@ -2,7 +2,7 @@
 setlocal
 
 set PORT=8081
-set LOG=%TEMP%\decap-server.log
+set LOG=%TEMP%\decap-server-%RANDOM%.log
 
 echo === Entorno de desarrollo: Astro + Decap CMS ===
 echo.
@@ -12,16 +12,7 @@ if %errorlevel%==1 goto start_proxy
 
 set HOLDER=
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":%PORT% " ^| findstr /c:"LISTENING"') do if not defined HOLDER if "%%p" neq "0" set HOLDER=%%p
-
-powershell -NoProfile -Command "$p=[int]$env:HOLDER; $c=(Get-CimInstance Win32_Process -Filter ('ProcessId='+$p)).CommandLine; if($c -match 'decap-server'){exit 0}else{exit 1}" 2>nul
-if %errorlevel%==0 (
-    echo [INFO] Proxy de Decap CMS huerfano de una sesion anterior en :%PORT%, se reinicia.
-    taskkill /F /PID %HOLDER% >nul 2>&1
-    timeout /t 1 /nobreak >nul
-    goto start_proxy
-)
-
-echo [ERROR] El puerto %PORT% ya esta en uso por otro proceso.
+echo [ERROR] El puerto %PORT% ya esta en uso.
 echo Sin el proxy local de Decap CMS en ese puerto, /admin/ pedira login
 echo de GitHub, asi que el entorno de desarrollo NO se iniciara.
 echo.
@@ -29,8 +20,12 @@ echo El proceso que lo ocupa es:
 echo.
 tasklist /fi "PID eq %HOLDER%" /fo table /nh
 echo.
-echo Deten el proceso indicado o libera el puerto y vuelve a ejecutar start-dev.bat.
-echo Si solo quieres el sitio sin el CMS, ejecuta manualmente: npm run dev
+echo Opciones:
+echo   - Ejecuta kill-dev.bat para ver el detalle y liberar el puerto.
+echo   - Deten el proceso manualmente.
+echo   - Si solo quieres el sitio sin el CMS: npm run dev
+echo.
+echo Despues de liberar el puerto, vuelve a ejecutar start-dev.bat.
 pause
 exit /b 1
 
@@ -67,5 +62,6 @@ echo Ultimas lineas del log %LOG%:
 echo.
 type "%LOG%" 2>nul
 echo.
+echo Si el puerto seguia ocupado, ejecuta kill-dev.bat para liberarlo.
 pause
 exit /b 1
