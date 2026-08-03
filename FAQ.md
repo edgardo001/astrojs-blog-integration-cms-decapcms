@@ -57,6 +57,49 @@ Dos opciones:
 1. Desde el CMS: en producción entra a `/admin/`, inicia sesión con DecapBridge y crea el contenido. En local, levanta `start-dev.bat` y abre `/admin/` (sin login).
 2. Directo en el repo: crea un archivo `src/content/blog/mi-post.md` siguiendo el frontmatter de `src/content.config.ts`.
 
+## ¿Puedo publicar contenido distinto en varios blogs?
+
+Sí. El sitio es **multi-blog**: además de `/blog` hay `blog_rrhh`, `blog_interno`, `blog_externo` y `blog_comunicados`, cada uno con su colección, su carpeta y sus rutas propias.
+
+### ¿Cómo elijo a qué blog publicar en Decap CMS?
+
+Cada blog es una **colección separada** en el sidebar de `/admin/` (Blog, Blog RRHH, Blog Interno, Blog Externo, Blog Comunicados):
+
+1. Entra a `/admin/` y abre la colección del blog deseado.
+2. Usa "Nueva entrada" para crear una publicación en esa colección.
+3. Al guardar, Decap hace commit del `.md` a la carpeta de ese blog (`src/content/<blog>/`) y la página correspondiente (`/<blog>/`) lo muestra.
+
+Los posts de cada blog no se mezclan: cada colección guarda en su propia carpeta y el frontend lee solo su content collection. Para agregar un blog nuevo basta añadir una colección en `public/admin/config.yml` (reusando `*campos_blog`), su collection en `src/content.config.ts` y su entrada en `src/data/blogs.ts`. Las rutas `[blog]` y el navbar se generan solos (no hay páginas por blog).
+
+## ¿Cómo apago o enciendo un blog?
+
+Hay dos formas posibles; hoy está implementada la primera:
+
+### Opción 1 — Flag en tiempo de compilación (implementada)
+
+Cada blog tiene un flag `enabled` en **`src/data/blogs.ts`**:
+
+```ts
+export const blogs: BlogInfo[] = [
+  // ...
+  { name: "blog_externo", label: "Blog Externo", /* ... */ enabled: true },
+];
+```
+
+- Con `enabled: true` (o `false`) y un rebuild, el blog aparece o desaparece del sitio completo.
+- Al apagarlo (`false`): se quita del **navbar**, deja de **generar sus rutas** (listado y posts) y desaparece del **sitemap** (el hosting responde 404 si alguien entra a la URL vieja).
+- Requiere **tocar código** y **recompilar** (el deploy de GitHub Actions se encarga automáticamente con cada push a `main`).
+
+### Opción 2 — Toggle editable desde Decap CMS (futura, no implementada)
+
+Si se quiere que un editor encienda/apague blogs **sin tocar código**, se podría:
+
+1. Crear una **colección de configuración** en `public/admin/config.yml` (una sola entrada, p. ej. `site-settings`) que guarde un archivo `.json`/`.md` al repo con la lista de blogs y sus `enabled`.
+2. En el build, leer ese archivo (p. ej. `getCollection` sobre esa colección o `fs.readFile` desde `src/`) en vez de `blogs.ts`, y filtrar navbar + rutas con esos valores.
+3. Cuando el editor cambie el toggle en `/admin/`, Decap hace commit del archivo → GitHub Actions reconstruye → el blog aparece/desaparece.
+
+No está implementada porque agrega una colección extra y lógica de lectura en build; el flag de código es más simple y suficiente para el ejemplo.
+
 ## ¿Cómo llegan los posts a `src/content/blog` al compilar Astro?
 
 Astro no consulta al CMS en compilación: lee los `.md` que ya existen en `src/content/blog/` mediante el loader `glob()` de `src/content.config.ts`. Quien los escribe ahí es Decap CMS haciendo un **commit directo al repositorio**:
@@ -67,9 +110,29 @@ Astro no consulta al CMS en compilación: lee los `.md` que ya existen en `src/c
 
 En local, el proxy `decap-server` escribe el `.md` directo en el disco y el dev server lo detecta al instante.
 
+## ¿El puerto 8081 está ocupado por otro proceso? ¿Qué hago?
+
+`8081` lo usa el proxy local de Decap CMS (`decap-server`). Si otro programa lo ocupa (p. ej. Docker), `decap-server` no puede arrancar y Decap CMS en `/admin/` cae al backend remoto de DecapBridge → **pide login de GitHub en local**.
+
+`start-dev.bat` valida el puerto **antes** de iniciar nada:
+
+- Si 8081 está ocupado por **otro** proceso → muestra el proceso/PID que lo usa, avisa que `/admin/` pediría login y **aborta sin iniciar Astro** (exit code 1).
+- Si 8081 está ocupado por un `decap-server` **huérfano** de una sesión anterior (quedó al cerrar la ventana) → lo mata y **lo reinicia solo**.
+- Si 8081 está libre → arranca `decap-server`, espera (con reintentos, hasta 10 s) a que escuche y recién entonces ejecuta `npm run dev`. Al salir detiene el proxy.
+
+Opciones si no quieres liberar el puerto:
+
+1. **Solo ver el sitio** (sin CMS): ejecuta `npm run dev` manualmente.
+2. **Usar el CMS local**: detén el proceso que ocupa 8081 o configura `decap-server` en otro puerto (`PORT=8082 npx decap-server`) y apunta `local_backend.url` en `config.yml` a ese puerto.
+
 ## ¿Qué pasa si cierro la ventana de `start-dev.bat`?
 
-Se apaga todo. `start-dev.bat` lanza el proxy `decap-server` con `start /b` (misma consola) y luego `npm run dev`. Al cerrar la ventana, Windows termina todos los procesos de esa consola: dev server y proxy. No queda ningún proceso colgado.
+El dev server de Astro se detiene con la ventana, pero el proxy `decap-server` puede **quedar huérfano** en 8081 (a veces no muere con la consola). No es un problema: la próxima vez que ejecutes `start-dev.bat` lo detecta, lo mata y arranca uno nuevo automáticamente. Si quieres liberar 8081 a mano:
+
+```powershell
+Get-NetTCPConnection -LocalPort 8081 -State Listen
+Stop-Process -Id <PID>
+```
 
 ## ¿Cómo despliego y publico cambios?
 

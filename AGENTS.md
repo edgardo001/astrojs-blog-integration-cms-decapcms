@@ -13,11 +13,12 @@ npm run lint      # Lint (si existe)
 
 ## Estructura clave
 
-- `src/pages/` — Rutas del sitio (index, blog, blog/[slug], 404).
+- `src/pages/` — Rutas del sitio. Los blogs se generan con rutas dinámicas: `[blog]/index.astro` y `[blog]/[slug].astro` (más `index`, `404`, `admin`, `rss.xml`). No crear páginas por blog.
+- `src/data/blogs.ts` — **Registro central de blogs** (label, ruta, `enabled`). Controla navbar y rutas generadas.
 - `src/layouts/` — Layouts compartidos.
-- `src/components/` — Componentes (Navbar, Footer, etc.).
-- `src/content/blog/` — Posts del blog en Markdown.
-- `src/content.config.ts` — Esquema/validador del content collection `blog` (Astro 7).
+- `src/components/` — Componentes (Navbar, Footer, PostList, PostDetail, etc.).
+- `src/content/blog*/` — Posts de cada blog en Markdown (una carpeta por blog).
+- `src/content.config.ts` — Esquemas/validadores de las content collections de los blogs (Astro 7).
 - `public/admin/` — Configuración y widget de Decap CMS.
 - `public/uploads/` — Imágenes subidas desde el CMS.
 
@@ -41,7 +42,10 @@ npm run lint      # Lint (si existe)
 
 - El backend apunta a **DecapBridge** (git-gateway + PKCE); el `repo` en `public/admin/config.yml` es `edgardo001/astrojs-blog-integration-cms-decapcms`.
 - En local, abrir `/admin/` con el servidor de desarrollo (usa `local_backend` + `decap-server`, sin login). En producción, el login lo maneja DecapBridge (contraseña, Google o Microsoft).
-- Las entradas del CMS se guardan como Markdown en `src/content/blog/`, compatibles con Content Collections de Astro.
+- `start-dev.bat` valida el puerto 8081 antes de arrancar: si está ocupado por otro proceso, reporta el proceso/PID y **aborta sin iniciar Astro**; si lo ocupa un `decap-server` huérfano, lo mata y lo reinicia solo. No iniciar Astro manualmente esperando que el CMS local funcione si 8081 no está disponible (caerá a login remoto).
+- Las entradas del CMS se guardan como Markdown en `src/content/<blog>/`, compatibles con Content Collections de Astro.
+- **Multi-blog**: cada blog es una colección (Decap) + content collection (Astro) + carpeta propia + entrada en `src/data/blogs.ts`. Para añadir un `blogN`: colección en `config.yml` (reusar `*campos_blog`), collection con `glob()` en `content.config.ts`, entrada en `blogs.ts` con `enabled: true`. Las rutas `[blog]` y el navbar se generan solos. No duplicar estilos.
+- **Toggle de blogs**: se enciende/apaga con `enabled` en `src/data/blogs.ts` (tiempo de compilación). No crear colecciones de configuración ni toggles en el CMS salvo que se pida.
 
 ## Verificación
 

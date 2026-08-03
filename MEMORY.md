@@ -18,13 +18,16 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 ## Decisiones de arquitectura
 
 - El blog usa **Content Collections** de Astro 7 con el loader `glob()` definido en `src/content.config.ts` (schema con Zod desde `astro/zod`). Los posts viven en `src/content/blog/*.md`.
+- **Multi-blog (opción A)**: hay **una content collection por blog** (`blog`, `blog_rrhh`, `blog_interno`, `blog_externo`, `blog_comunicados`), cada una con su carpeta `src/content/<blog>/` y su propia colección en Decap CMS. El listado y el detalle se comparten vía los componentes `PostList.astro` y `PostDetail.astro` (evita duplicar estilos). Las colecciones de Decap reusan los mismos campos con un anchor YAML (`*campos_blog`); los esquemas de Astro comparten el mismo `postSchema`.
+- **Rutas dinámicas `[blog]`**: no hay páginas por blog; `src/pages/[blog]/index.astro` y `src/pages/[blog]/[slug].astro` generan todo a partir del registro central **`src/data/blogs.ts`** (`name`, `label`, `description`, `navLabel`, `backLabel`, `enabled`). Añadir un blog = agregar entrada en `blogs.ts` + colección en `config.yml` + collection en `content.config.ts`.
+- **Toggle de blogs (tiempo de compilación)**: el flag `enabled` en `blogs.ts` decide si un blog aparece en el navbar y si se generan sus rutas. Con `enabled: false` el blog no existe en el sitio (ni listado, ni posts, ni sitemap). Es la opción implementada. La alternativa futura (toggle desde **Decap CMS** vía una colección de configuración del sitio) quedó documentada en FAQ como pendiente.
 - **Decap CMS** se monta en `/admin/` (ruta `src/pages/admin.html` + `public/admin/config.yml`), y sus entradas se guardan como Markdown en `src/content/blog/`, consumible por Astro sin transformaciones.
 - El CMS usa **`local_backend: true`**: en local escribe directo al filesystem vía proxy `decap-server`; en producción cae automáticamente al backend remoto (**DecapBridge**: `git-gateway` + PKCE). **No hay que apagar `local_backend` en producción.**
 - **Auth**: DecapBridge maneja el login (contraseña, Google, Microsoft) y los commits los firma el autor (ver `commit_messages` en el config). No se necesita cuenta de Netlify.
 - Las imágenes del CMS se guardan en `public/uploads/` (`media_folder: public/uploads`, `public_folder: /uploads`).
 - Frontmatter mínimo por post: `title`, `description`, `pubDate`, `author`, `image`, `tags` (validado en `src/content.config.ts`).
 - Navbar sticky responsivo (mobile-first) con menú hamburguesa mediante script vanilla.
-- `start-dev.bat` es la **única fuente de inicio en desarrollo**: lanza el proxy `decap-server` con `start /b` (misma consola) y luego `npm run dev`. Cerrar la ventana apaga todo.
+- `start-dev.bat` es la **única fuente de inicio en desarrollo**: lanza el proxy `decap-server` con `start /b` (misma consola) y luego `npm run dev`. Al cerrar la ventana o con Ctrl+C puede quedar un `decap-server` **huérfano** en 8081; el siguiente `start-dev.bat` lo **detecta y lo reinicia solo** (no hay que matarlo a mano).
 - `site` en `astro.config.mjs` = subdominio; **sin `base`** (se sirve en la raíz del custom domain). Las rutas internas usan `import.meta.env.BASE_URL` (funciona con o sin base).
 
 ## Estado actual
@@ -42,13 +45,16 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 - [x] `backend.repo` = `edgardo001/astrojs-blog-integration-cms-decapcms`
 - [x] Desplegado en GitHub Pages (repo público `edgardo001/astrojs-blog-integration-cms-decapcms`)
 - [ ] Probar flujo completo: login DecapBridge → crear post → commit → rebuild automático
+- [x] **Multi-blog**: 4 blogs nuevos (`blog_rrhh`, `blog_interno`, `blog_externo`, `blog_comunicados`) con posts de ejemplo y rutas propias
+- [x] **Toggle de blogs** por flag `enabled` en `src/data/blogs.ts` (compilación); rutas dinámicas `[blog]`
+- [ ] Toggle de blogs desde **Decap CMS** (opción futura, documentada en FAQ)
 
 ## Conocimiento clave (lecciones aprendidas)
 
 - **Astro 7**: Content Collections se definen en `src/content.config.ts` (no `src/content/config.ts`) con `defineCollection` + loader `glob()` (`astro/loaders`) y `z` (`astro/zod`). El procesador Markdown por defecto es **Sätteri** (ya no trae `unified`; para `rehypePlugins` haría falta `@astrojs/markdown-remark` — se probó y se quitó, no hizo falta con raíz).
 - **GitHub Pages + dominios**: el custom domain vive en los Settings del repo/user site, no necesariamente en un archivo `CNAME`. `github.io` redirige al custom domain. Un *project site* con custom domain propio se sirve en la **raíz** del dominio (por eso `site` = subdominio y sin `base`). Desde Actions se usa `build_type: workflow` (el build legacy falla con Astro: ruido normal).
 - **Decap CMS**: el proxy OAuth de Netlify por defecto está **descontinuado** (login "not found"); se usa **DecapBridge** (PKCE). `local_backend: true` + `decap-server` = CMS local sin login; en producción cae solo al backend remoto. GitGuardian marca el UUID de DecapBridge como falso positivo.
-- **Herramientas**: `start-dev.bat` usa `start /b` (misma consola → cerrar apaga todo). El workflow reconstruye con cada push a `main` (incluidos commits del CMS).
+- **Herramientas**: `start-dev.bat` usa `start /b` (misma consola). **Valida el puerto 8081 antes de arrancar**: si está ocupado, reporta el proceso/PID y aborta sin iniciar Astro (así `/admin/` no queda en modo login de GitHub por un proxy muerto). Si el que lo ocupa es un `decap-server` huérfano de una sesión anterior, lo **mata y lo reinicia solo**. El proxy en background escribe su log en `%TEMP%\decap-server.log` y se espera con reintentos (hasta 10 s) a que escuche; al salir de `npm run dev` lo detiene. El workflow reconstruye con cada push a `main` (incluidos commits del CMS).
 - El detalle de cada punto está en **FAQ.md** (preguntas/respuestas) y en la bitácora de este archivo.
 
 ## Bitácora (historial cronológico)
@@ -77,7 +83,7 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 1. El usuario confirmó despliegue en **GitHub Pages** (no Netlify).
 2. Se cambió el backend de `git-gateway` a `github` con placeholder.
 3. Se eliminó `start-cms.bat`; `start-dev.bat` quedó como única fuente de inicio.
-4. `start-dev.bat` usa `start /b` (misma consola → cerrar apaga todo).
+4. `start-dev.bat` usa `start /b` (misma consola).
 
 ### 2026-08-02 — GitHub Pages: workflow y documentación
 1. Se creó `.github/workflows/deploy.yml` (checkout → node 22 → `npm ci` → `npm run build` → upload artifact → deploy-pages). Se dispara en cada push a `main` y con `workflow_dispatch`.
@@ -112,11 +118,49 @@ Landing page de inicio con navbar y blog, construida con **AstroJS 7** y adminis
 3. Se creó el archivo **LICENSE** (MIT, © 2026 Edgardo Vasquez).
 4. Se documentó en README (sección "SEO y sindicación").
 
+### 2026-08-03 — Multi-blog (opción A) con blogs de ejemplo
+
+1. Se mantuvo la colección `blog` en `/blog` y se agregaron **4 colecciones** en `public/admin/config.yml`: `blog_rrhh`, `blog_interno`, `blog_externo`, `blog_comunicados` (campos compartidos vía anchor YAML `*campos_blog`).
+2. En `src/content.config.ts` se definieron las 4 collections con un `postSchema` compartido y el tipo `BlogCollectionName`.
+3. Se refactorizó el listado y el detalle de posts a componentes reutilizables: `PostList.astro` y `PostDetail.astro`; `blog/index.astro` y `blog/[slug].astro` ahora los usan.
+4. Se crearon las rutas `blog_rrhh`, `blog_interno`, `blog_externo` y `blog_comunicados` (cada una con `index` y `[slug]`).
+5. Posts de ejemplo por blog (6 en total) con contenido diferenciado por temática.
+6. Navbar: se agregaron enlaces a los 4 blogs.
+7. Verificación: `npm run check` → 0 errores; `npm run build` → **16 páginas**. El RSS sigue cubriendo solo la colección `blog`.
+
+### 2026-08-03 — Toggle de blogs: rutas dinámicas `[blog]` + `src/data/blogs.ts`
+
+1. Se creó el registro central **`src/data/blogs.ts`** (`BlogInfo`: `name`, `label`, `description`, `navLabel`, `backLabel`, `enabled`). `name` tipado como `BlogCollectionName` desde `content.config.ts`.
+2. Se eliminaron las 10 páginas estáticas por blog y se reemplazaron por **rutas dinámicas**: `src/pages/[blog]/index.astro` y `src/pages/[blog]/[slug].astro`, que generan solo los blogs con `enabled: true` (index vía `getStaticPaths`; posts iterando colecciones).
+3. Navbar ahora lee `blogs` de `src/data/blogs.ts` y muestra solo los habilitados.
+4. **Decisión**: toggle en **tiempo de compilación** (flag `enabled`). Con `enabled: false` el blog no se genera (ni listado, ni posts, ni sitemap). Se validó: con `blog_externo: false` el build daba **14 páginas**; con `true`, **16**.
+5. **Alternativa futura documentada (no implementada)**: toggle editable desde **Decap CMS** vía una colección de configuración del sitio (el editor activa/desactiva blogs en `/admin/`; el build lee ese archivo en vez de `blogs.ts`). Ver FAQ.
+6. Verificación final: `npm run check` → 0 errores; `npm run build` → **16 páginas**.
+
+### 2026-08-03 — start-dev.bat: validación del puerto 8081
+
+1. **Problema**: el puerto 8081 estaba ocupado por otro proyecto (Docker). `decap-server` crasheaba al arrancar, pero `start /b` lo lanzaba en background **sin mostrar el error**; Decap CMS caía al backend remoto de DecapBridge y `/admin/` pedía login de GitHub en local.
+2. **Solución**: `start-dev.bat` ahora valida el puerto 8081 **antes** de lanzar nada:
+   - Si está ocupado → muestra el proceso/PID que lo usa (`tasklist`), avisa que `/admin/` pediría login, sugiere `npm run dev` manual si solo se quiere el sitio, y **aborta con exit code 1 sin iniciar Astro**.
+   - Si está libre → lanza `decap-server` en background con su salida a `%TEMP%\decap-server.log` y espera con **reintentos** (1 s × hasta 10) a que 8081 escuche (si no, muestra el log y aborta); recién entonces ejecuta `npm run dev`. Al salir de `npm run dev` detiene el proxy.
+3. Detalle de cmd: no usar paréntesis dentro de `echo` dentro de un bloque `if (...)` (rompe el parser: el `)` cierra el bloque antes de tiempo y el texto sobrante genera "No se esperaba ':' en este momento"). Ocurrió con `(sin el CMS)` en el pre-check y con `(%LOG%):` en el post-check. Los `.bat` deben guardarse con **CRLF** (fin de línea de Windows); con LF puro cmd falla de forma intermitente al parsear bloques multi-línea. Proceso listado deduplicado (IPv4/IPv6 del mismo PID).
+4. Verificado con 8081 ocupado por Docker: mensaje claro + `EXIT: 1` y **no** se ejecuta `npm run dev`. También verificado el fallback del post-check (log mostrado, exit 1) y el happy path (decap-server + astro). Durante pruebas quedó un `decap-server` huérfano en 8081 (PID node) que se limpió con `Stop-Process`.
+
+### 2026-08-03 — start-dev.bat: ciclo de vida del proxy decap-server
+
+1. **Problema**: al cerrar la ventana de `start-dev.bat` (o tras Ctrl+C) podía quedar un `decap-server` huérfano en 8081 que bloqueaba la siguiente ejecución. Se creía que "cerrar la ventana apaga todo", pero el `start /b` con salida redirigida a log hace que el proxy **no siempre muera con la consola**.
+2. **Solución** en `start-dev.bat`:
+   - Si 8081 está ocupado, se inspecciona la línea de comandos del proceso (`powershell` + `Win32_Process`): si contiene `decap-server`, se lo **mata y se reinicia solo** (huérfano de la sesión anterior). Si es otro proceso, se aborta mostrando el PID.
+   - La espera del proxy usa **reintentos** (1 s × hasta 10) en lugar de un único sleep de 3 s.
+   - Al terminar `npm run dev` se detiene el proxy en 8081 (limpieza).
+3. Verificado: (a) 8081 ocupado por otro proceso → error + exit 1; (b) huérfano `decap-server` en 8081 → se mata, se reinicia y queda 8081 libre al salir; (c) puerto libre → happy path con limpieza final (8081 libre tras salir).
+4. Detalle de entorno: `start /b` + stdin redirigido a `<nul` rompe npx (`Input redirection is not supported`) solo en consolas no interactivas; en consola real funciona.
+
 ## Convenciones
 
 - Textos de UI en **español**.
 - Sin comentarios de código salvo que se pidan.
-- Rutas de páginas: `index`, `blog`, `blog/[slug]`, `404`, `admin`.
+- Rutas de páginas: `index`, `[blog]/index`, `[blog]/[slug]`, `404`, `admin`.
 - Verificación obligatoria: `npm run check` y `npm run build` después de cambios.
 - Git: commits atómicos con Conventional Commits en inglés (ver AGENTS.md).
 

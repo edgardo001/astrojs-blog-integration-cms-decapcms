@@ -6,7 +6,7 @@ Landing page responsiva (móvil y desktop) con navbar, más un blog administrado
 
 - **[AstroJS](https://astro.build)** — Framework de contenido estático (v7).
 - **[Decap CMS](https://github.com/decaporg/decap-cms)** — CMS de Git-based para administrar el blog.
-- **Markdown** — Los posts del blog se escriben en `src/content/blog/` con Frontmatter.
+- **Markdown** — Los posts se escriben en `src/content/*/` con Frontmatter.
 
 ## Estructura del proyecto
 
@@ -16,16 +16,64 @@ Landing page responsiva (móvil y desktop) con navbar, más un blog administrado
 │   ├── admin/          # Widget de Decap CMS (index.html + config.yml)
 │   └── uploads/        # Imágenes subidas desde Decap CMS
 ├── src/
-│   ├── components/     # Componentes reutilizables (Navbar, Footer, ...)
+│   ├── components/     # Componentes reutilizables (Navbar, PostList, PostDetail, ...)
 │   ├── content/
-│   │   ├── blog/       # Posts del blog (Markdown)
-│   │   └── config.ts   # Esquema del content collection "blog"
-│   ├── layouts/        # Layouts (Layout.astro, BlogPost.astro, ...)
-│   └── pages/          # Rutas: index, blog, blog/[slug], 404, ...
+│   │   ├── blog/               # Posts del blog general
+│   │   ├── blog_rrhh/          # Posts del Blog RRHH
+│   │   ├── blog_interno/       # Posts del Blog Interno
+│   │   ├── blog_externo/       # Posts del Blog Externo
+│   │   ├── blog_comunicados/   # Posts del Blog Comunicados
+│   │   └── config.ts           # Esquemas de las content collections
+│   ├── data/
+│   │   └── blogs.ts    # Registro central de blogs (label, ruta, enabled)
+│   ├── layouts/        # Layouts (Layout.astro)
+│   └── pages/          # Rutas: index, [blog]/index, [blog]/[slug], 404, ...
 ├── astro.config.mjs
 ├── package.json
 └── tsconfig.json
 ```
+
+## Múltiples blogs (multi-blog)
+
+El sitio soporta **un blog por colección**: cada blog es una content collection de Astro y, a la vez, una colección de Decap CMS con su propia carpeta de Markdown y su listado en el sidebar de `/admin/`.
+
+| Blog            | Colección (Decap/Astro) | Carpeta                   | Ruta               |
+| --------------- | ----------------------- | ------------------------- | ------------------ |
+| Blog (general)  | `blog`                  | `src/content/blog/`       | `/blog/`           |
+| Blog RRHH       | `blog_rrhh`             | `src/content/blog_rrhh/`  | `/blog_rrhh/`      |
+| Blog Interno    | `blog_interno`          | `src/content/blog_interno/` | `/blog_interno/` |
+| Blog Externo    | `blog_externo`          | `src/content/blog_externo/` | `/blog_externo/` |
+| Blog Comunicados| `blog_comunicados`      | `src/content/blog_comunicados/` | `/blog_comunicados/` |
+
+Las rutas no se crean una por blog: `src/pages/[blog]/index.astro` y `src/pages/[blog]/[slug].astro` generan dinámicamente todas las páginas a partir del registro **`src/data/blogs.ts`**.
+
+### Encender / apagar blogs (flag en tiempo de compilación)
+
+Cada blog tiene un flag `enabled` en `src/data/blogs.ts`. Cambiar `enabled: false` **oculta el blog del navbar** y **deja de generar sus rutas** (listado y posts) en el próximo build:
+
+```ts
+export const blogs: BlogInfo[] = [
+  // ...
+  {
+    name: "blog_externo",
+    label: "Blog Externo",
+    // ...
+    enabled: false, // ← blog apagado: no aparece en navbar ni genera páginas
+  },
+];
+```
+
+> Alternativa futura (no implementada): encender/apagar desde **Decap CMS** (una colección de configuración del sitio que un editor edita en `/admin/` y el build lee en vez de `blogs.ts`). Ver detalles en `FAQ.md`.
+
+Para añadir otro blog (`blogN`):
+
+1. En `public/admin/config.yml` agrega una colección apuntando a `src/content/blogN` (reusa los campos con el anchor YAML `*campos_blog`).
+2. En `src/content.config.ts` define la collection `blogN` con el loader `glob()` apuntando a `./src/content/blogN`.
+3. Agrega una entrada en `src/data/blogs.ts` con `enabled: true`. Las rutas `[blog]` y el navbar la toman automáticamente.
+4. Crea las entradas de ejemplo en `src/content/blogN/`.
+5. Verifica con `npm run check` y `npm run build`.
+
+En `/admin/`, cada colección aparece como una entrada separada en el sidebar; al crear una entrada eliges en qué blog la publicas.
 
 ## Requisitos previos
 
@@ -40,6 +88,9 @@ npm install
 
 # Desarrollo en Windows (levanta el proxy de Decap CMS y el dev server)
 start-dev.bat
+```
+
+> `start-dev.bat` valida primero que el **puerto 8081** (proxy de Decap CMS) esté libre. Si está ocupado por otro proceso, lo reporta con el proceso/PID que lo usa y **aborta sin iniciar Astro** (para no levantar un `/admin/` que pediría login de GitHub). Si lo ocupa un `decap-server` huérfano de una sesión anterior, lo reinicia solo. Si solo quieres el sitio sin el CMS, usa `npm run dev` manualmente.
 
 # Alternativa: servidor de desarrollo solo
 npm run dev
@@ -69,10 +120,10 @@ Decap CMS **no usa usuario/contraseña propios**: en producción autentica vía 
 
 Dos opciones:
 
-1. **Desde el CMS**: entrar en `/admin/`, autenticarse y crear contenido desde la interfaz.
-2. **Directo en el repo**: crear un archivo `src/content/blog/mi-post.md` siguiendo el frontmatter del esquema en `src/content.config.ts`.
+1. **Desde el CMS**: entrar en `/admin/`, autenticarse, elegir el blog (colección) en el sidebar y crear contenido desde la interfaz.
+2. **Directo en el repo**: crear un archivo `src/content/<blog>/mi-post.md` siguiendo el frontmatter del esquema en `src/content.config.ts`.
 
-> Al compilar, Astro lee los `.md` ya presentes en `src/content/blog/` (loader `glob()`). El CMS es quien los escribe ahí haciendo commits al repo; no consulta al CMS en build.
+> Al compilar, Astro lee los `.md` ya presentes en cada carpeta de `src/content/*/` (loader `glob()`). El CMS es quien los escribe ahí haciendo commits al repo; no consulta al CMS en build.
 
 ## SEO y sindicación
 
