@@ -1,0 +1,25 @@
+---
+import PostDetail from "../../components/PostDetail.astro";
+import { getCollection } from "astro:content";
+import { blogs } from "../../data/blogs";
+
+export async function getStaticPaths() {
+  const paths = [];
+
+  for (const blog of blogs.filter((blog) => blog.enabled)) {
+    const posts = await getCollection(blog.name);
+    for (const post of posts) {
+      paths.push({
+        params: { blog: blog.name, slug: post.id },
+        props: { post, blog },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { post, blog } = Astro.props;
+---
+
+<PostDetail post={post} basePath={`/${blog.name}/`} backLabel={blog.backLabel} />

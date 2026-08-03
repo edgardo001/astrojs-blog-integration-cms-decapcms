@@ -1,0 +1,22 @@
+---
+import PostList from "../../components/PostList.astro";
+import { blogs } from "../../data/blogs";
+
+export async function getStaticPaths() {
+  return blogs
+    .filter((blog) => blog.enabled)
+    .map((blog) => ({
+      params: { blog: blog.name },
+      props: { blog },
+    }));
+}
+
+const { blog } = Astro.props;
+---
+
+<PostList
+  collection={blog.name}
+  basePath={`/${blog.name}/`}
+  title={blog.label}
+  description={blog.description}
+/>
